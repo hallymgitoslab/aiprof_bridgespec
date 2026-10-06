@@ -1,0 +1,180 @@
+{
+  "spec_version": "0.1",
+  "defaults": {
+    "duration": 100,
+    "completion_threshold": 80,
+    "seek_grace": 3,
+    "heartbeat": 5
+  },
+  "notes": [
+    "Ranges use [start, end] positions with watched length calculated as end - start.",
+    "elapsed_seconds is supplied explicitly by the test harness.",
+    "The first request for a learner establishes state and does not advance verified watch time."
+  ],
+  "cases": [
+    {
+      "name": "first_request_does_not_advance",
+      "initial": null,
+      "input": {
+        "current_time": 5,
+        "playing": true,
+        "elapsed_seconds": 5
+      },
+      "expected": {
+        "watched_ranges": [],
+        "watched_seconds": 0,
+        "frontier": 0,
+        "position": 0,
+        "completed": false,
+        "percentage": 0
+      }
+    },
+    {
+      "name": "normal_playback_advances",
+      "initial": {
+        "watched_ranges": [],
+        "last_position": 0,
+        "frontier": 0
+      },
+      "input": {
+        "current_time": 5,
+        "playing": true,
+        "elapsed_seconds": 5
+      },
+      "expected": {
+        "watched_ranges": [[0, 5]],
+        "watched_seconds": 5,
+        "frontier": 5,
+        "position": 5,
+        "completed": false,
+        "percentage": 5
+      }
+    },
+    {
+      "name": "forward_seek_is_clamped",
+      "initial": {
+        "watched_ranges": [[0, 10]],
+        "last_position": 10,
+        "frontier": 10
+      },
+      "input": {
+        "current_time": 50,
+        "playing": true,
+        "elapsed_seconds": 5
+      },
+      "expected": {
+        "watched_ranges": [[0, 18]],
+        "watched_seconds": 18,
+        "frontier": 18,
+        "position": 18,
+        "completed": false,
+        "percentage": 18
+      }
+    },
+    {
+      "name": "paused_request_cannot_add_progress",
+      "initial": {
+        "watched_ranges": [[0, 18]],
+        "last_position": 18,
+        "frontier": 18
+      },
+      "input": {
+        "current_time": 40,
+        "playing": false,
+        "elapsed_seconds": 5
+      },
+      "expected": {
+        "watched_ranges": [[0, 18]],
+        "watched_seconds": 18,
+        "frontier": 18,
+        "position": 21,
+        "completed": false,
+        "percentage": 18
+      }
+    },
+    {
+      "name": "replay_does_not_double_count",
+      "initial": {
+        "watched_ranges": [[0, 30]],
+        "last_position": 10,
+        "frontier": 30
+      },
+      "input": {
+        "current_time": 15,
+        "playing": true,
+        "elapsed_seconds": 5
+      },
+      "expected": {
+        "watched_ranges": [[0, 30]],
+        "watched_seconds": 30,
+        "frontier": 30,
+        "position": 15,
+        "completed": false,
+        "percentage": 30
+      }
+    },
+    {
+      "name": "adjacent_ranges_merge",
+      "initial": {
+        "watched_ranges": [[0, 20], [21, 40]],
+        "last_position": 40,
+        "frontier": 40
+      },
+      "input": {
+        "current_time": 45,
+        "playing": true,
+        "elapsed_seconds": 5
+      },
+      "expected": {
+        "watched_ranges": [[0, 45]],
+        "watched_seconds": 45,
+        "frontier": 45,
+        "position": 45,
+        "completed": false,
+        "percentage": 45
+      }
+    },
+    {
+      "name": "completion_at_threshold",
+      "initial": {
+        "watched_ranges": [[0, 75]],
+        "last_position": 75,
+        "frontier": 75
+      },
+      "input": {
+        "current_time": 80,
+        "playing": true,
+        "elapsed_seconds": 5
+      },
+      "expected": {
+        "watched_ranges": [[0, 80]],
+        "watched_seconds": 80,
+        "frontier": 80,
+        "position": 80,
+        "completed": true,
+        "percentage": 80
+      }
+    },
+    {
+      "name": "duration_clamps_position",
+      "initial": {
+        "watched_ranges": [[0, 97]],
+        "last_position": 97,
+        "frontier": 97
+      },
+      "input": {
+        "current_time": 130,
+        "playing": true,
+        "elapsed_seconds": 5
+      },
+      "expected": {
+        "watched_ranges": [[0, 100]],
+        "watched_seconds": 100,
+        "frontier": 100,
+        "position": 100,
+        "completed": true,
+        "percentage": 100
+      }
+    }
+  ]
+}
